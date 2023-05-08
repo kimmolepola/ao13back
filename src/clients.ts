@@ -2,7 +2,7 @@ let main: any;
 const clients: any = {};
 
 export const addClientUnique = (id: any, socket: any) => {
-  console.log('--add unique, id:', id, 'clients:', Object.keys(clients));
+  console.log("--add unique, id:", id, "clients:", Object.keys(clients));
   if (clients[id]) {
     return false;
   }
@@ -17,7 +17,7 @@ export const removeClient = (id: any) => {
 export const getClients = () => clients;
 
 export const setMain = (x: any) => {
-  console.log('--set main:', x);
+  console.log("--set main:", x);
   main = x;
 };
 

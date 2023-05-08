@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const { Schema } = mongoose;
 
@@ -6,7 +6,7 @@ const tokenSchema = new Schema({
   userId: {
     type: Schema.Types.ObjectId,
     required: true,
-    ref: 'user',
+    ref: "user",
   },
   token: {
     type: String,
@@ -20,4 +20,4 @@ const tokenSchema = new Schema({
   },
 });
 
-export default mongoose.model('Token', tokenSchema);
+export default mongoose.model("Token", tokenSchema);

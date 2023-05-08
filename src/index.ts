@@ -83,12 +83,16 @@ io.use((socket: any, next: any) => {
   console.log("--io.use, token:", token);
   let err: any = null;
   if (token) {
-    const decodedToken: any = JWT.verify(token, JWTSecret);
-    console.log("--decodedToken:", decodedToken);
-    if (!decodedToken.id) {
-      err = new Error("Invalid token");
-      err.statusCode = 401;
-      err.data = { content: "Please retry later" }; // additional details
+    try {
+      const decodedToken: any = JWT.verify(token, JWTSecret);
+      console.log("--decodedToken:", decodedToken);
+      if (!decodedToken.id) {
+        err = new Error("Invalid token");
+        err.statusCode = 401;
+        err.data = { content: "Please retry later" }; // additional details
+      }
+    } catch (erro: any) {
+      console.log("--erro:", erro);
     }
   }
   next(err);

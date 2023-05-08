@@ -1,12 +1,17 @@
-import nodemailer from 'nodemailer';
-import handlebars from 'handlebars';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import nodemailer from "nodemailer";
+import handlebars from "handlebars";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // eslint-disable-next-line consistent-return
-const sendEmail = async (email: any, subject: any, payload: any, template: any) => {
-  console.log('send email');
+const sendEmail = async (
+  email: any,
+  subject: any,
+  payload: any,
+  template: any
+) => {
+  console.log("send email");
   try {
     // create reusable transporter object using the default SMTP transport
     const transporter = nodemailer.createTransport({
@@ -19,7 +24,7 @@ const sendEmail = async (email: any, subject: any, payload: any, template: any) 
     });
     const filename = fileURLToPath(import.meta.url);
     const dirname = path.dirname(filename);
-    const source = fs.readFileSync(path.join(dirname, template), 'utf8');
+    const source = fs.readFileSync(path.join(dirname, template), "utf8");
     const compiledTemplate = handlebars.compile(source);
     const options = () => ({
       from: process.env.FROM_EMAIL,
@@ -31,7 +36,7 @@ const sendEmail = async (email: any, subject: any, payload: any, template: any) 
     // Send email
     return transporter.sendMail(options());
   } catch (error) {
-    console.log('utils -> email -> sendEmail error:', error);
+    console.log("utils -> email -> sendEmail error:", error);
     return false;
   }
 };

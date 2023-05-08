@@ -5,11 +5,11 @@ import {
   requestPasswordReset,
   resetPassword,
   logout,
-} from '../services/auth.service';
+} from "../services/auth.service";
 
 export const getTokenFrom = (request: any) => {
-  const authorization = request.get('authorization');
-  if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
+  const authorization = request.get("authorization");
+  if (authorization && authorization.toLowerCase().startsWith("bearer ")) {
     return authorization.substring(7);
   }
   return null;
@@ -21,7 +21,11 @@ export const logoutController = async (req: any, res: any, next: any) => {
   return res.json(logoutService);
 };
 
-export const turnCredentialsController = async (req: any, res: any, next: any) => {
+export const turnCredentialsController = async (
+  req: any,
+  res: any,
+  next: any
+) => {
   const token = getTokenFrom(req);
   const turnCredentialsService = await getTurnCredentials(token);
   return res.json(turnCredentialsService);
@@ -37,18 +41,26 @@ export const signUpController = async (req: any, res: any, next: any) => {
   return res.json(signupService);
 };
 
-export const resetPasswordRequestController = async (req: any, res: any, next: any) => {
+export const resetPasswordRequestController = async (
+  req: any,
+  res: any,
+  next: any
+) => {
   const requestPasswordResetService = await requestPasswordReset(
-    req.body.username,
+    req.body.username
   );
   return res.json(requestPasswordResetService);
 };
 
-export const resetPasswordController = async (req: any, res: any, next: any) => {
+export const resetPasswordController = async (
+  req: any,
+  res: any,
+  next: any
+) => {
   const resetPasswordService = await resetPassword(
     req.body.userId,
     req.body.token,
-    req.body.password,
+    req.body.password
   );
   return res.json(resetPasswordService);
 };
