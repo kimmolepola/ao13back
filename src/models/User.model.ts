@@ -42,4 +42,6 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-export default mongoose.model("user", userSchema.plugin(uniqueValidator));
+const model = mongoose.model("user", userSchema.plugin(uniqueValidator));
+
+export default model;

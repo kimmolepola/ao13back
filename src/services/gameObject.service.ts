@@ -1,6 +1,7 @@
 import jsonwebtoken from "jsonwebtoken";
-import User from "../models/User.model";
+// import User from "../models/User.model";
 import { getMain } from "../clients";
+import * as userActions from "../db/user.actions";
 
 const JWTSecret = process.env.JWT_SECRET || "";
 
@@ -15,7 +16,13 @@ export const getGameObject = async (token: any, id: any) => {
     throw err;
   }
 
-  const user: any = await User.findOne({ _id: id });
+  const user = await userActions.findById(id);
+  // const user: any = await User.findOne({ _id: id });
+
+  if (!user) {
+    console.error("getGameObject user error");
+    throw new Error("getGameObject user error");
+  }
 
   const data = {
     username: user.username,
@@ -39,16 +46,19 @@ export const saveGameState = async (
   }
   try {
     console.log("--try");
-    const promises = data.map((x) =>
-      User.updateOne(
-        { _id: x.remoteId },
-        { $set: { score: x.score } },
-        { new: true, runValidators: true, context: "query" }
-      )
-    );
-    const pro = await Promise.all(promises);
+    for (const d of data) {
+      await userActions.updateScore(d.remoteId, d.score);
+    }
+    // const promises = data.map((x) =>
+    //   User.updateOne(
+    //     { _id: x.remoteId },
+    //     { $set: { score: x.score } },
+    //     { new: true, runValidators: true, context: "query" }
+    //   )
+    // );
+    // const pro = await Promise.all(promises);
   } catch (error) {
-    console.error(error);
+    console.error("saveGameState error:", error);
     throw new Error("Failed to save game state");
   }
   return true;

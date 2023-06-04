@@ -2,10 +2,12 @@ import "dotenv/config";
 import crypto from "crypto";
 import JWT from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import User from "../models/User.model";
-import Token from "../models/Token.model";
+import { v4 as uuidv4 } from "uuid";
 import sendEmail from "../utils/email/sendEmail";
 import { disconnect } from "../index";
+import * as userActions from "../db/user.actions";
+import * as passwordResetTokenActions from "../db/passwordResetToken.actions";
+import * as types from "../types";
 
 const JWTSecret = process.env.JWT_SECRET || "";
 const bcryptSalt = process.env.BCRYPT_SALT;
@@ -26,9 +28,7 @@ export const decode = (token: any) => {
 
 /* eslint-disable no-underscore-dangle, no-return-assign, no-param-reassign */
 export const logout = async (token: any) => {
-  console.log("--logout, token:", token);
   const { id } = decode(token);
-  console.log("--logout, id:", id);
   disconnect(id);
   console.log(`logout ${id}`);
   return true;
@@ -61,28 +61,30 @@ export const getTurnCredentials = (token: any) => {
 
 export const login = async (data: any) => {
   console.log("login attempt:", data.username);
-  let user;
+  let user: types.User | undefined;
   if (data.username.includes("@")) {
-    user = await User.findOne({ email: data.username });
+    user = await userActions.findByEmail(data.username);
   } else {
-    user = await User.findOne({ username: data.username });
+    user = await userActions.findByUsername(data.username);
   }
   const passwordCorrect =
-    user === null ? false : await bcrypt.compare(data.password, user.password);
+    user && user.password
+      ? await bcrypt.compare(data.password, user.password)
+      : false;
 
-  if (!(user && passwordCorrect)) {
+  if (!user || !passwordCorrect) {
     const err: any = new Error("Invalid username, email or password");
     err.statusCode = 401;
     throw err;
   }
 
-  const token = JWT.sign({ id: user._id }, JWTSecret);
+  const token = JWT.sign({ id: user.id }, JWTSecret);
 
-  console.log("logged in:", user._id, user.username);
+  console.log("logged in:", user.id, user.username);
 
   return (data = {
     score: user.score,
-    userId: user._id,
+    userId: user.id,
     username: user.username,
     token,
   });
@@ -90,18 +92,28 @@ export const login = async (data: any) => {
 
 export const signup = async (data: any) => {
   console.log("signup", data.email);
-  let user = await User.findOne({ email: data.email });
-  if (user) {
+  const item = await userActions.findByEmail(data.email);
+  if (item) {
     const err: any = new Error("Email already exist");
     err.statusCode = 409;
     throw err;
   }
-  data.score = 0;
-  data.username = Math.random().toString();
-  user = new User(data);
 
-  const token = JWT.sign({ id: user._id }, JWTSecret);
-  await user.save();
+  const hash = await bcrypt.hash(data.password, Number(bcryptSalt));
+
+  const user = {
+    id: uuidv4(),
+    email: data.email,
+    score: 0,
+    username: Math.random().toString(),
+    password: hash,
+  };
+
+  console.log("--insert user:", user);
+
+  const token = JWT.sign({ id: user.id }, JWTSecret);
+  const result = await userActions.insertUser(user);
+  console.log("--insert result:", result);
 
   try {
     await sendEmail(
@@ -118,7 +130,7 @@ export const signup = async (data: any) => {
 
   return (data = {
     score: user.score,
-    userId: user._id,
+    userId: user.id,
     username: user.username,
     token,
   });
@@ -128,9 +140,9 @@ export const requestPasswordReset = async (username: any) => {
   console.log("request password reset", username);
   let user;
   if (username.includes("@")) {
-    user = await User.findOne({ email: username });
+    user = await userActions.findByEmail(username);
   } else {
-    user = await User.findOne({ username });
+    user = await userActions.findByUsername(username);
   }
   if (!user) {
     const err: any = new Error("User does not exist");
@@ -138,20 +150,19 @@ export const requestPasswordReset = async (username: any) => {
     throw err;
   }
 
-  const token = await Token.findOne({ userId: user._id });
-  if (token) await token.deleteOne();
+  const token = await passwordResetTokenActions.findByUserId(user.id);
+  if (token) await passwordResetTokenActions.deleteToken(token.token);
 
   const resetToken = crypto.randomBytes(32).toString("hex");
   const hash = await bcrypt.hash(resetToken, Number(bcryptSalt));
 
-  await new Token({
-    userId: user._id,
+  await passwordResetTokenActions.insertToken({
+    userId: user.id,
     token: hash,
     createdAt: Date.now(),
-  }).save();
+  });
 
-  // const link = `https://${clientURL}/passwordreset?token=${resetToken}&id=${user._id}`;
-  const link = `${client}/resetpassword?token=${resetToken}&id=${user._id}`;
+  const link = `${client}/resetpassword?token=${resetToken}&id=${user.id}`;
 
   try {
     await sendEmail(
@@ -172,7 +183,9 @@ export const requestPasswordReset = async (username: any) => {
 
 export const resetPassword = async (userId: any, token: any, password: any) => {
   console.log("reset password, user id:", userId);
-  const passwordResetToken: any = await Token.findOne({ userId });
+  const passwordResetToken = await passwordResetTokenActions.findByUserId(
+    userId
+  );
 
   if (!passwordResetToken) {
     const err: any = new Error("Invalid or expired password reset token");
@@ -190,15 +203,15 @@ export const resetPassword = async (userId: any, token: any, password: any) => {
 
   const hash = await bcrypt.hash(password, Number(bcryptSalt));
 
-  await User.updateOne(
-    { _id: userId },
-    { $set: { password: hash } },
-    { new: true }
-  );
+  await userActions.updatePassword(userId, hash);
 
-  const user: any = await User.findById({ _id: userId });
+  const user = await userActions.findById(userId);
+  await passwordResetTokenActions.deleteToken(passwordResetToken.token);
 
-  await passwordResetToken.deleteOne();
+  if (!user) {
+    console.error("resetPassword, no user found");
+    throw new Error("Password reset email error, no user found");
+  }
 
   try {
     await sendEmail(
