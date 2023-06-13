@@ -1,7 +1,8 @@
 import {
   getTurnCredentials,
   login,
-  signup,
+  requestSignup,
+  confirmSignup,
   requestPasswordReset,
   resetPassword,
   logout,
@@ -37,7 +38,20 @@ export const loginController = async (req: any, res: any, next: any) => {
 };
 
 export const signUpController = async (req: any, res: any, next: any) => {
-  const signupService = await signup(req.body);
+  const signupService = await requestSignup(req.body);
+  return res.json(signupService);
+};
+
+export const signUpConfirmController = async (
+  req: any,
+  res: any,
+  next: any
+) => {
+  const signupService = await confirmSignup(
+    req.body.email,
+    req.body.password,
+    req.body.token
+  );
   return res.json(signupService);
 };
 

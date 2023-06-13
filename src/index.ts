@@ -7,8 +7,8 @@ import http from "http";
 import { Server } from "socket.io";
 import { networkInterfaces } from "os";
 
-import connection from "./db/db";
 import * as db2 from "./db/db2";
+import * as services from "./services/services";
 import {
   addClientUnique,
   removeClient,
@@ -56,11 +56,11 @@ const io = new Server(server, {
 
 const port = process.env.PORT;
 
-const dbConnect = () => {
-  connection();
-  db2.initiate();
+const initialize = () => {
+  db2.initialize();
+  services.initialize();
 };
-dbConnect();
+initialize();
 
 app.use(cors());
 app.use(express.json());

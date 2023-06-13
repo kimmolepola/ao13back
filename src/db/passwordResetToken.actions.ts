@@ -1,7 +1,7 @@
 import { knex } from "./db2";
 import * as types from "../types";
 
-export const initiate = async () => {
+export const initialize = async () => {
   try {
     console.log("--init table users");
     const result = await knex.schema.hasTable("passwordResetTokens");

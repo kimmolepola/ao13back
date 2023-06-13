@@ -1,7 +1,7 @@
 import { knex } from "./db2";
 import * as types from "../types";
 
-export const initiate = async () => {
+export const initialize = async () => {
   try {
     const result = await knex.schema.hasTable("users");
     if (!result) {

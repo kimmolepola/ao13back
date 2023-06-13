@@ -8,6 +8,7 @@ import { disconnect } from "../index";
 import * as userActions from "../db/user.actions";
 import * as passwordResetTokenActions from "../db/passwordResetToken.actions";
 import * as types from "../types";
+import * as signupRequests from "./auth.service.signupRequests";
 
 const JWTSecret = process.env.JWT_SECRET || "";
 const bcryptSalt = process.env.BCRYPT_SALT;
@@ -90,7 +91,7 @@ export const login = async (data: any) => {
   });
 };
 
-export const signup = async (data: any) => {
+export const requestSignup = async (data: any) => {
   console.log("signup", data.email);
   const item = await userActions.findByEmail(data.email);
   if (item) {
@@ -99,11 +100,48 @@ export const signup = async (data: any) => {
     throw err;
   }
 
-  const hash = await bcrypt.hash(data.password, Number(bcryptSalt));
+  const token = crypto.randomBytes(32).toString("hex");
+  signupRequests.set(data.email, token);
+
+  const link = `${client}/confirm-email?token=${token}&email=${data.email}`;
+
+  try {
+    await sendEmail(
+      data.email,
+      "Confirmation",
+      {
+        link,
+      },
+      "./template/requestSignup.handlebars"
+    );
+  } catch (err) {
+    console.error("Email service error");
+  }
+
+  return true;
+};
+
+export const confirmSignup = async (
+  email: string,
+  password: string,
+  token: string
+) => {
+  console.log("--email, token, password", email, token, password);
+  const signupRequest = signupRequests.get(email);
+  console.log("--requ:", signupRequest);
+  const isValid = signupRequest && token === signupRequest.token;
+
+  if (!isValid) {
+    const err: any = new Error("Email or token not valid");
+    err.statusCode = 409;
+    throw err;
+  }
+
+  const hash = await bcrypt.hash(password, Number(bcryptSalt));
 
   const user = {
     id: uuidv4(),
-    email: data.email,
+    email,
     score: 0,
     username: Math.random().toString(),
     password: hash,
@@ -111,7 +149,7 @@ export const signup = async (data: any) => {
 
   console.log("--insert user:", user);
 
-  const token = JWT.sign({ id: user.id }, JWTSecret);
+  const jwtToken = JWT.sign({ id: user.id }, JWTSecret);
   const result = await userActions.insertUser(user);
   console.log("--insert result:", result);
 
@@ -128,12 +166,12 @@ export const signup = async (data: any) => {
     console.error("Email service error");
   }
 
-  return (data = {
+  return {
     score: user.score,
     userId: user.id,
     username: user.username,
-    token,
-  });
+    token: jwtToken,
+  };
 };
 
 export const requestPasswordReset = async (username: any) => {
@@ -162,7 +200,7 @@ export const requestPasswordReset = async (username: any) => {
     createdAt: Date.now(),
   });
 
-  const link = `${client}/resetpassword?token=${resetToken}&id=${user.id}`;
+  const link = `${client}/reset-password?token=${resetToken}&id=${user.id}`;
 
   try {
     await sendEmail(

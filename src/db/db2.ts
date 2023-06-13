@@ -15,10 +15,10 @@ const config = {
 
 export const knex = knexlib(config);
 
-export const initiate = () => {
-  authActions.initiate();
-  passwordResetTokenActions.initiate();
-  periodicTasks.initiate();
+export const initialize = () => {
+  authActions.initialize();
+  passwordResetTokenActions.initialize();
+  periodicTasks.initialize();
 };
 
 export const connect = () => {

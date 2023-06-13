@@ -6,7 +6,7 @@ const deleteExpiredPasswordResetTokens = () => {
   passwordResetTokenActions.deleteExpiredTokens(Date.now() - interval);
 };
 
-export const initiate = () => {
+export const initialize = () => {
   setInterval(() => {
     deleteExpiredPasswordResetTokens();
   }, interval);

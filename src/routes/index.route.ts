@@ -12,6 +12,7 @@ import {
   loginController,
   turnCredentialsController,
   signUpController,
+  signUpConfirmController,
   resetPasswordRequestController,
   resetPasswordController,
   logoutController,
@@ -31,6 +32,7 @@ router.post("/user/updateUsername", updateUsernameController);
 router.post("/auth/getTurnCredentials", turnCredentialsController);
 router.post("/auth/login", loginController);
 router.post("/auth/signup", signUpController);
+router.post("/auth/confirmSignup", signUpConfirmController);
 router.post("/auth/requestResetPassword", resetPasswordRequestController);
 router.post("/auth/resetPassword", resetPasswordController);
 router.post("/auth/logout", logoutController);
