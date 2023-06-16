@@ -33,6 +33,12 @@ const sendEmail = async (
       html: compiledTemplate(payload),
     });
 
+    console.log(
+      "--send:",
+      process.env.EMAIL_HOST,
+      process.env.EMAIL_USERNAME,
+      process.env.APP_PASSWORD
+    );
     // Send email
     return transporter.sendMail(options());
   } catch (error) {
