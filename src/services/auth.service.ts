@@ -73,6 +73,8 @@ export const login = async (data: any) => {
       ? await bcrypt.compare(data.password, user.password)
       : false;
 
+  console.log("--user:", user, "--passwordCorrect:", passwordCorrect);
+
   if (!user || !passwordCorrect) {
     const err: any = new Error("Invalid username, email or password");
     err.statusCode = 401;
