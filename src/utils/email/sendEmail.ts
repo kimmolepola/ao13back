@@ -16,7 +16,7 @@ const sendEmail = async (
     // create reusable transporter object using the default SMTP transport
     const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
-      port: 465,
+      port: 25,
       auth: {
         user: process.env.EMAIL_USERNAME,
         pass: process.env.APP_PASSWORD,
