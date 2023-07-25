@@ -18,7 +18,7 @@ const sendEmail = async (
       service: "gmail",
       host: process.env.EMAIL_HOST,
       port: 465,
-      secure: false,
+      secure: true,
       auth: {
         user: process.env.EMAIL_USERNAME,
         pass: process.env.APP_PASSWORD,
