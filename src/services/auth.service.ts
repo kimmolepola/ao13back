@@ -110,7 +110,7 @@ export const requestSignup = async (data: any) => {
   try {
     await sendEmail(
       data.email,
-      "Confirmation",
+      "Action required",
       {
         link,
       },
