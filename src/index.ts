@@ -62,11 +62,13 @@ const origin =
 
 console.log("origin:", origin);
 
+const corsOptions = {
+  origin,
+  methods: ["GET", "POST"],
+};
+
 const io = new Server(server, {
-  cors: {
-    origin,
-    methods: ["GET", "POST"],
-  },
+  cors: corsOptions,
 });
 
 const port = process.env.PORT;
@@ -77,7 +79,7 @@ const initialize = () => {
 };
 initialize();
 
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use("/api/v1", router);
