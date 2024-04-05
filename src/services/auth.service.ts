@@ -61,7 +61,7 @@ export const getTurnCredentials = (token: any) => {
 };
 
 export const login = async (data: any) => {
-  console.log("login attempt:", data.username, data);
+  console.log("login attempt:", data.username);
   let user: types.User | undefined;
   if (data.username.includes("@")) {
     user = await userActions.findByEmail(data.username);

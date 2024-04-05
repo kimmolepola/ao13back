@@ -33,7 +33,6 @@ export const turnCredentialsController = async (
 };
 
 export const loginController = async (req: any, res: any, next: any) => {
-  console.log("--login req:", req);
   const loginService = await login(req.body);
   return res.json(loginService);
 };
