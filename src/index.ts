@@ -4,8 +4,10 @@ import JWT from "jsonwebtoken";
 import cors from "cors";
 import express from "express";
 import http from "http";
+import https from "node:https";
 import { Server } from "socket.io";
 import { networkInterfaces } from "os";
+import fs from "node:fs";
 
 import * as db2 from "./db/db2";
 import * as services from "./services/services";
@@ -17,6 +19,14 @@ import {
   getMain,
 } from "./clients";
 import router from "./routes/index.route";
+
+const options =
+  process.env.NODE_ENV === "production"
+    ? {}
+    : {
+        key: fs.readFileSync("./local/Local.key"),
+        cert: fs.readFileSync("./local/Local.crt"),
+      };
 
 console.log("--NEW");
 console.log(
@@ -31,7 +41,12 @@ console.log(
 );
 
 const app = express();
-const server = http.createServer(app);
+
+// production uses http server
+const server =
+  process.env.NODE_ENV === "production"
+    ? http.createServer(app)
+    : https.createServer(options, app);
 
 const internalIpv4Address = (
   networkInterfaces()?.["Wi-Fi"] || networkInterfaces()?.["WLAN"]
@@ -39,10 +54,13 @@ const internalIpv4Address = (
 
 const origin =
   process.env.NODE_ENV === "production"
-    ? `https://${process.env.CLIENT_HOST}`
+    ? [
+        `https://${process.env.CLIENT_HOST}`,
+        `https://${process.env.CLIENT_HOST_B}`,
+      ]
     : [
-        `http://${process.env.CLIENT_HOST}:${process.env.DEV_CLIENT_PORT}`,
-        `http://${internalIpv4Address}:${process.env.DEV_CLIENT_PORT}`,
+        `https://${process.env.CLIENT_HOST}:${process.env.DEV_CLIENT_PORT}`,
+        `https://${internalIpv4Address}:${process.env.DEV_CLIENT_PORT}`,
       ];
 
 console.log("origin:", origin);

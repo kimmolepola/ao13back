@@ -9,7 +9,7 @@ let db: sqlite3.Database | undefined;
 const config = {
   client: "sqlite3",
   connection: {
-    filename: "./asdf.db",
+    filename: "./local/asdf.db",
   },
 };
 
