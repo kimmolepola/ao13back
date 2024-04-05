@@ -54,7 +54,10 @@ const internalIpv4Address = (
 
 const origin =
   process.env.NODE_ENV === "production"
-    ? `https://${process.env.CLIENT_HOST}`
+    ? [
+        `https://${process.env.CLIENT_HOST}`,
+        `https://${process.env.CLIENT_HOST_B}`,
+      ]
     : [
         `https://${process.env.CLIENT_HOST}:${process.env.DEV_CLIENT_PORT}`,
         `https://${internalIpv4Address}:${process.env.DEV_CLIENT_PORT}`,
@@ -79,7 +82,7 @@ const initialize = () => {
 };
 initialize();
 
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use("/api/v1", router);
