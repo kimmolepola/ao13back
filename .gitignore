@@ -25,5 +25,4 @@ yarn-error.log*
 .env
 /.yarn
 /local
-yarn.lock-old
 yarn.lock
