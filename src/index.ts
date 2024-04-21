@@ -9,7 +9,7 @@ import { Server } from "socket.io";
 import { networkInterfaces } from "os";
 import fs from "node:fs";
 
-import * as db2 from "./db/db2";
+import * as db2 from "./db/db";
 import * as services from "./services/services";
 import {
   addClientUnique,

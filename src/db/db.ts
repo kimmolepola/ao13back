@@ -1,36 +1,19 @@
-import mongoose from "mongoose";
+import knexlib from "knex";
+import * as authActions from "./user.actions";
+import * as passwordResetTokenActions from "./passwordResetToken.actions";
+import * as periodicTasks from "./periodicTasks";
 
-const { DB_URL } = process.env;
-
-const connection = async () => {
-  const conn = mongoose.connection;
-
-  conn.on("connected", () => {
-    console.log("connected to database");
-  });
-
-  conn.on("error", (err) => {
-    console.log(`database connection error ${err}`);
-  });
-
-  conn.on("disconnected", () => {
-    console.log("disconnected from database");
-  });
-
-  if (DB_URL) {
-    try {
-      console.log("connecting to database");
-      await mongoose.connect(DB_URL, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        autoIndex: true,
-      } as any);
-    } catch (error) {
-      console.log("--error:", error);
-    }
-  } else {
-    console.log("cannot connect to database, missing DB_URL");
-  }
+const config = {
+  client: "sqlite3",
+  connection: {
+    filename: "./local/asdf.db",
+  },
 };
 
-export default connection;
+export const knex = knexlib(config);
+
+export const initialize = () => {
+  authActions.initialize();
+  passwordResetTokenActions.initialize();
+  periodicTasks.initialize();
+};

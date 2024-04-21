@@ -1,4 +1,4 @@
-import { knex } from "./db2";
+import { knex } from "./db";
 import * as types from "../types";
 
 export const initialize = async () => {
