@@ -1,0 +1,10 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+/bin
+/obj
+/Properties
+ao13back.csproj
+ao13back.sln
+appsettings.Development.json
+appsettings.json
+DB.db
