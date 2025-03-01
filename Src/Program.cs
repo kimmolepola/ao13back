@@ -1,15 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Cryptography;
-using System.Net.Mail;
-using System.Net;
-using System.Globalization;
-using Microsoft.AspNetCore.Authorization;
 
 namespace ao13back.Src
 {
@@ -51,7 +42,10 @@ namespace ao13back.Src
                 .Get<EmailOptions>();
             ClientOptions? clientOptions = builder.Configuration
                 .GetSection("ClientOptions")
-                .Get<ClientOptions>(); ;
+                .Get<ClientOptions>();
+            TurnOptions? turnOptions = builder.Configuration
+                .GetSection("TurnOptions")
+                .Get<TurnOptions>(); ;
             Random random = new();
 
             // builder.Services.AddSingleton(jwtOptions);
@@ -92,34 +86,11 @@ namespace ao13back.Src
 
             AuthService authService = new(app, random, jwtOptions, clientOptions, authOptions, emailOptions);
             UserService userService = new(app);
+            TurnService turnService = new(app, turnOptions);
+            SocketService socketService = new(app);
 
             app.Run();
         }
     }
-
-
-    public record ResetPassword(string Email, string Password, string Token);
-    public record ConfirmSignup(string Email, string Password, string Token);
-    public record ClientOptions(string Address);
-    public record Signup(string Email);
-    public record Login(string Username, string Password);
-    public record RequestResetPassword(string Username);
-    public record JwtOptions(
-        string Issuer,
-        string Audience,
-        string SigningKey,
-        int ExpirationSeconds
-    );
-
-    public record AuthOptions(
-        string BcryptSalt
-    );
-
-    public record EmailOptions(
-        string EmailHost,
-        string AppPassword,
-        string EmailUserName,
-        string FromEmail
-    );
 }
 

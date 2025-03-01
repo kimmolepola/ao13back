@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
+namespace ao13back.Src;
+
 class UserDb : DbContext
 {
     public UserDb(DbContextOptions<UserDb> options)

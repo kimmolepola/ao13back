@@ -26,61 +26,61 @@ class AuthService
             EnableSsl = true,
         };
         app.MapPost("/api/v1/auth/login", (UserDb db, Login data) =>
-           {
-               Console.WriteLine("Login: " + data);
-               User? user;
-               if (data.Username.Contains('@'))
-               {
-                   user = db.Users.Where(u => u.Email == data.Username).FirstOrDefault();
-               }
-               else
-               {
-                   user = db.Users.Where(u => u.UserName == data.Username).FirstOrDefault();
-               }
-               if (user == null)
-               {
-                   return Results.Unauthorized();
-               }
+        {
+            Console.WriteLine("Login: " + data);
+            User? user;
+            if (data.Username.Contains('@'))
+            {
+                user = db.Users.Where(u => u.Email == data.Username).FirstOrDefault();
+            }
+            else
+            {
+                user = db.Users.Where(u => u.UserName == data.Username).FirstOrDefault();
+            }
+            if (user == null)
+            {
+                return Results.Unauthorized();
+            }
 
-               bool validCredentials = BCrypt.Net.BCrypt.Verify(data.Password, user.Password);
+            bool validCredentials = BCrypt.Net.BCrypt.Verify(data.Password, user.Password);
 
-               if (!validCredentials)
-               {
-                   return Results.Unauthorized();
-               }
+            if (!validCredentials)
+            {
+                return Results.Unauthorized();
+            }
 
-               var claims = new List<Claim>()
+            var claims = new List<Claim>()
                {
                     new Claim("sub", "" + user.Id),
                     new Claim("name", "" + user.Id),
                     new Claim("aud", "ao13v1")
                };
 
-               if (jwtOptions?.SigningKey == null)
-               {
-                   return Results.InternalServerError();
-               }
-               var keyBytes = Encoding.UTF8.GetBytes(jwtOptions.SigningKey);
-               var symmetricKey = new SymmetricSecurityKey(keyBytes);
-               var signingCredentials = new SigningCredentials(symmetricKey, SecurityAlgorithms.HmacSha256);
+            if (jwtOptions?.SigningKey == null)
+            {
+                return Results.InternalServerError();
+            }
+            var keyBytes = Encoding.UTF8.GetBytes(jwtOptions.SigningKey);
+            var symmetricKey = new SymmetricSecurityKey(keyBytes);
+            var signingCredentials = new SigningCredentials(symmetricKey, SecurityAlgorithms.HmacSha256);
 
-               var token = new JwtSecurityToken(
-                   issuer: jwtOptions.Issuer,
-                   audience: jwtOptions.Audience,
-                   claims: claims,
-                   expires: DateTime.Now.AddSeconds(jwtOptions.ExpirationSeconds),
-                   signingCredentials: signingCredentials);
+            var token = new JwtSecurityToken(
+                issuer: jwtOptions.Issuer,
+                audience: jwtOptions.Audience,
+                claims: claims,
+                expires: DateTime.Now.AddSeconds(jwtOptions.ExpirationSeconds),
+                signingCredentials: signingCredentials);
 
-               var rawToken = new JwtSecurityTokenHandler().WriteToken(token);
+            var rawToken = new JwtSecurityTokenHandler().WriteToken(token);
 
-               return Results.Ok(new
-               {
-                   score = user.Score,
-                   userId = user.Id,
-                   username = user.UserName,
-                   token = rawToken,
-               });
-           });
+            return Results.Ok(new
+            {
+                score = user.Score,
+                userId = user.Id,
+                username = user.UserName,
+                token = rawToken,
+            });
+        });
 
 
         app.MapPost("/api/v1/auth/logout", (UserDb db, HttpContext http, [FromHeader(Name = "Authorization")] string authorization) =>
@@ -300,7 +300,6 @@ class AuthService
         });
     }
 
-    public record PasswordResetRequest(long TimeStamp, string Token);
     public static class PasswordResetRequests
     {
         public static readonly Dictionary<string, PasswordResetRequest> passwordResetRequests = [];
@@ -329,7 +328,6 @@ class AuthService
         }
     };
 
-    public record SignupRequest(long TimeStamp, string Token);
     public static class SignupRequests
     {
         public static readonly Dictionary<string, SignupRequest> signupRequests = [];
