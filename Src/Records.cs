@@ -1,5 +1,6 @@
 namespace ao13back.Src;
 
+public record SignalingArgs(string RemoteId, object? Description, object? Candidate);
 public record SignupRequest(long TimeStamp, string Token);
 public record PasswordResetRequest(long TimeStamp, string Token);
 public record UpdateUsername(string Username);

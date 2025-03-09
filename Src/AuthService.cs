@@ -86,8 +86,10 @@ class AuthService
         app.MapPost("/api/v1/auth/logout", (UserDb db, HttpContext http, [FromHeader(Name = "Authorization")] string authorization) =>
         {
             Console.WriteLine("Logout: " + authorization);
-            var iam = http.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
-            var aud = http.User.Claims.Where(c => c.Type == "aud").Select(c => c.Value).ToList();
+            string? id = http.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
+            // var aud = http.User.Claims.Where(c => c.Type == "aud").Select(c => c.Value).ToList();
+            SignalingHub.Disconnect(id);
+            return Results.Ok();
         }).RequireAuthorization();
 
         app.MapPost("/api/v1/auth/signup", (UserDb db, Signup data) =>
@@ -300,7 +302,7 @@ class AuthService
         });
     }
 
-    public static class PasswordResetRequests
+    private static class PasswordResetRequests
     {
         public static readonly Dictionary<string, PasswordResetRequest> passwordResetRequests = [];
 
@@ -328,7 +330,7 @@ class AuthService
         }
     };
 
-    public static class SignupRequests
+    private static class SignupRequests
     {
         public static readonly Dictionary<string, SignupRequest> signupRequests = [];
 

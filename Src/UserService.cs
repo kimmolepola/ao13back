@@ -1,18 +1,17 @@
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Cryptography;
-using System.Net.Mail;
-using System.Net;
-
 namespace ao13back.Src;
 
 class UserService
 {
     public UserService(WebApplication app)
     {
+        app.MapGet("/api/v1/user/checkOkToStart", () =>
+        {
+            return Results.Ok(new
+            {
+                success = true
+            });
+        }).RequireAuthorization();
+
         app.MapGet("/api/v1/user", (UserDb db, HttpContext http) =>
         {
             Console.WriteLine("User");
@@ -38,6 +37,6 @@ class UserService
             user.UserName = data.Username;
             await db.SaveChangesAsync();
             return Results.Ok();
-        });
+        }).RequireAuthorization();
     }
 }

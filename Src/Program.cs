@@ -26,9 +26,11 @@ namespace ao13back.Src
                     builder =>
                     {
                         builder
-                            .AllowAnyOrigin()
+                            // .AllowAnyOrigin()
+                            .WithOrigins("http://localhost:3000")
                             .AllowAnyHeader()
-                            .AllowAnyMethod();
+                            .AllowAnyMethod()
+                            .AllowCredentials();
                     });
             });
             JwtOptions? jwtOptions = builder.Configuration
@@ -66,8 +68,27 @@ namespace ao13back.Src
                         ValidAudience = jwtOptions.Audience,
                         IssuerSigningKey = new SymmetricSecurityKey(signingKeyBytes)
                     };
+
+                    opts.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+
+                            // If the request is for our hub...
+                            var path = context.HttpContext.Request.Path;
+                            if (!string.IsNullOrEmpty(accessToken) &&
+                                (path.StartsWithSegments("/api/v1/hub")))
+                            {
+                                // Read the token out of the query string
+                                context.Token = accessToken;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
             builder.Services.AddAuthorization();
+            builder.Services.AddSignalR();
             WebApplication app = builder.Build();
             app.UseCors("AllowAll");
             app.UseAuthentication();
@@ -83,11 +104,13 @@ namespace ao13back.Src
                     config.DocExpansion = "list";
                 });
             }
+            app.MapHub<SignalingHub>("/api/v1/hub");
 
             AuthService authService = new(app, random, jwtOptions, clientOptions, authOptions, emailOptions);
             UserService userService = new(app);
             TurnService turnService = new(app, turnOptions);
-            SocketService socketService = new(app);
+            SignalingHub signalingHub = new();
+            GameObjectService gameObjectService = new(app);
 
             app.Run();
         }
