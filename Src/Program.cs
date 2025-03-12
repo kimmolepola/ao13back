@@ -8,7 +8,6 @@ namespace ao13back.Src
     {
         public Program(string[] args)
         {
-
             WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
             builder.Services.AddEndpointsApiExplorer();
@@ -18,20 +17,6 @@ namespace ao13back.Src
                 config.DocumentName = "ao13back";
                 config.Title = "ao13back v1";
                 config.Version = "v1";
-            });
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy(
-                    name: "AllowAll",
-                    builder =>
-                    {
-                        builder
-                            // .AllowAnyOrigin()
-                            .WithOrigins("http://localhost:3000")
-                            .AllowAnyHeader()
-                            .AllowAnyMethod()
-                            .AllowCredentials();
-                    });
             });
             JwtOptions? jwtOptions = builder.Configuration
                 .GetSection("JwtOptions")
@@ -49,8 +34,19 @@ namespace ao13back.Src
                 .GetSection("TurnOptions")
                 .Get<TurnOptions>(); ;
             Random random = new();
-
-            // builder.Services.AddSingleton(jwtOptions);
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(
+                    name: "AllowAll",
+                    builder =>
+                    {
+                        builder
+                            .WithOrigins(clientOptions.CorsOrigins)
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();
+                    });
+            });
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(opts =>
                 {

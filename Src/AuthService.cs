@@ -50,11 +50,9 @@ class AuthService
             }
 
             var claims = new List<Claim>()
-               {
-                    new Claim("sub", "" + user.Id),
-                    new Claim("name", "" + user.Id),
-                    new Claim("aud", "ao13v1")
-               };
+            {
+                new Claim("name", "" + user.Id),
+            };
 
             if (jwtOptions?.SigningKey == null)
             {
@@ -87,7 +85,6 @@ class AuthService
         {
             Console.WriteLine("Logout: " + authorization);
             string? id = http.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
-            // var aud = http.User.Claims.Where(c => c.Type == "aud").Select(c => c.Value).ToList();
             SignalingHub.Disconnect(id);
             return Results.Ok();
         }).RequireAuthorization();
@@ -177,9 +174,7 @@ class AuthService
 
                 var claims = new List<Claim>()
                 {
-                        new("sub", "" + user.Id),
                         new("name", "" + user.Id),
-                        new("aud", "ao13v1")
                 };
 
                 if (jwtOptions?.SigningKey == null)

@@ -1,20 +1,36 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
+
+
 namespace ao13back.Src;
 
 class UserService
 {
     public UserService(WebApplication app)
     {
-        app.MapGet("/api/v1/user/checkOkToStart", () =>
+        app.MapGet("/api/v1/user/checkOkToStart", (HttpContext http) =>
         {
-            return Results.Ok(new
+            string? userId = http.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
+            IHubCallerClients? connectedUser = UserInfo.GetConnectedUser(userId);
+
+            if (connectedUser == null)
             {
-                success = true
+                return Results.Ok(new
+                {
+                    success = true
+                });
+            }
+            return Results.Conflict(new
+            {
+                success = false,
+                error = "Session already open with this user"
             });
+
         }).RequireAuthorization();
 
         app.MapGet("/api/v1/user", (UserDb db, HttpContext http) =>
         {
-            Console.WriteLine("User");
+            Console.WriteLine("user");
             string? userId = http.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
             User? user = db.Users.SingleOrDefault(u => u.Id == userId);
             string token = http.Request.Headers.Authorization.ToString().Replace("Bearer ", "");
@@ -36,7 +52,7 @@ class UserService
             if (user is null) return Results.NotFound();
             user.UserName = data.Username;
             await db.SaveChangesAsync();
-            return Results.Ok();
+            return Results.Ok(new { username = user.UserName });
         }).RequireAuthorization();
     }
 }

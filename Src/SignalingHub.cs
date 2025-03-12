@@ -41,34 +41,19 @@ public class SignalingHub : Hub
             }
         }
     }
-    public async Task AsdfMessage(string asdf, string qwer)
-    {
-        Console.WriteLine("SignalingHub: " + asdf + " - " + qwer);
-        await Clients.All.SendAsync("messageReceived", asdf, qwer);
-    }
 
     public async Task Signaling(SignalingArgs args)
     {
-        Console.WriteLine("Signaling: " + args.RemoteId + " - " + args.Description + " - " + args.Candidate);
-        if (args.RemoteId == null)
-        {
-            Console.WriteLine("RemoteId null");
-            return;
-        }
+        string id = Context.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
+        Console.WriteLine("Signaling: " + id + " -> " + args.RemoteId);
         IHubCallerClients remoteCallerClients = UserInfo.GetConnectedUser(args.RemoteId);
-        object o = new { remoteId = args.RemoteId };
-        Console.WriteLine("oooooooooooooooooooo: " + o);
-        await remoteCallerClients.Caller.SendAsync("signaling", args);
-    }
-
-    public async Task Signalingx(string functionName)
-    {
-        Console.WriteLine("Signalingx: " + functionName);
-        await Clients.All.SendAsync("messageReceived", "functionName", functionName);
+        object o = new { id, description = args.Description, candidate = args.Candidate };
+        await remoteCallerClients.Caller.SendAsync("signaling", o);
     }
 
     public static async void Disconnect(string? id)
     {
+        Console.WriteLine("Disconnect: " + id);
         if (id == null) { return; }
         IHubCallerClients? Clients = UserInfo.GetConnectedUser(id);
         if (Clients == null) { return; }
@@ -94,42 +79,5 @@ public class SignalingHub : Hub
             }
         }
         await Clients.Caller.SendAsync("disconnect");
-    }
-
-    private static class UserInfo
-    {
-        public static string? Main { get; set; }
-        private static readonly Dictionary<string, IHubCallerClients> ConnectedUsers = [];
-
-        public static bool AddConnectedUserUnique(string id, IHubCallerClients Clients)
-        {
-            Console.WriteLine("AddConnectedUserUnique: " + id);
-            if (ConnectedUsers.ContainsKey(id))
-            {
-                return false;
-            }
-            ConnectedUsers[id] = Clients;
-            return true;
-        }
-
-        public static void RemoveConnectedUser(string id)
-        {
-            ConnectedUsers.Remove(id);
-        }
-
-        public static Dictionary<string, IHubCallerClients> GetConnectedUsers()
-        {
-            return ConnectedUsers;
-        }
-
-        public static IHubCallerClients GetConnectedUser(string id)
-        {
-            return ConnectedUsers[id];
-        }
-
-        public static bool IsMain(string id)
-        {
-            return Main == id;
-        }
     }
 }
