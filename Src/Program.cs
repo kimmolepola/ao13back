@@ -32,12 +32,15 @@ namespace ao13back.Src
                 .Get<ClientOptions>();
             TurnOptions? turnOptions = builder.Configuration
                 .GetSection("TurnOptions")
-                .Get<TurnOptions>(); ;
+                .Get<TurnOptions>();
+            Console.WriteLine("----------------------");
+            Console.WriteLine("CorsOrigins: " + clientOptions.CorsOrigins);
+            Console.WriteLine("----------------------");
             Random random = new();
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy(
-                    name: "AllowAll",
+                    name: "WithOrigins",
                     builder =>
                     {
                         builder
@@ -86,7 +89,7 @@ namespace ao13back.Src
             builder.Services.AddAuthorization();
             builder.Services.AddSignalR();
             WebApplication app = builder.Build();
-            app.UseCors("AllowAll");
+            app.UseCors("WithOrigins");
             app.UseAuthentication();
             app.UseAuthorization();
             if (app.Environment.IsDevelopment())
@@ -101,6 +104,8 @@ namespace ao13back.Src
                 });
             }
             app.MapHub<SignalingHub>("/api/v1/hub");
+
+            app.MapGet("/", () => "hello");
 
             AuthService authService = new(app, random, jwtOptions, clientOptions, authOptions, emailOptions);
             UserService userService = new(app);
