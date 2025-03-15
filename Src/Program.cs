@@ -8,10 +8,10 @@ namespace ao13back.Src
     {
         public Program(string[] args)
         {
-            IConfigurationBuilder confibuilder = new ConfigurationBuilder().AddJsonFile("appsettings.json", false, true);
-            IConfigurationRoot confiroot = confibuilder.Build();
+            // IConfigurationBuilder confibuilder = new ConfigurationBuilder().AddJsonFile("appsettings.json", false, true);
+            // IConfigurationRoot confiroot = confibuilder.Build();
 
-            Console.WriteLine($"Hello, {confiroot["HelloText"]} world!");
+            // Console.WriteLine($"Hello, {confiroot["HelloText"]} world!");
 
             WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -23,6 +23,7 @@ namespace ao13back.Src
                 config.Title = "ao13back v1";
                 config.Version = "v1";
             });
+            builder.Configuration.AddJsonFile("appsettings.json", false, true);
             JwtOptions? jwtOptions = builder.Configuration
                 .GetSection("JwtOptions")
                 .Get<JwtOptions>();
