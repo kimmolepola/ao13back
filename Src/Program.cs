@@ -8,6 +8,11 @@ namespace ao13back.Src
     {
         public Program(string[] args)
         {
+            IConfigurationBuilder confibuilder = new ConfigurationBuilder().AddJsonFile("appsettings.json", false, true);
+            IConfigurationRoot confiroot = confibuilder.Build();
+
+            Console.WriteLine($"Hello, {confiroot["HelloText"]} world!");
+
             WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
             builder.Services.AddEndpointsApiExplorer();
