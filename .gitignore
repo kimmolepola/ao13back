@@ -1,0 +1,24 @@
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio files
+.vs/
+
+# Rider files
+.idea/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
