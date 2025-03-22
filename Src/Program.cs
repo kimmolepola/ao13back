@@ -20,7 +20,7 @@ namespace ao13back.Src
             builder.Configuration.AddEnvironmentVariables(prefix: "ASPNETCORE_Ao13back__");
             ConfigurationManager Configuration = builder.Configuration;
 
-            string dbConnectionString = "Data Source=" + Configuration["DBConnectionString__Path"];
+            string dbConnectionString = "Data Source=" + Configuration["DBConnectionString:Path"];
 
             Console.WriteLine("----------------------------------");
             Console.WriteLine("CorsOrigins: " + Configuration["ClientOptions:CorsOrigins"]);
