@@ -11,7 +11,6 @@ namespace ao13back.Src
             WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSqlite<UserDb>("Data Source=DB.db");
             builder.Services.AddOpenApiDocument(config =>
             {
                 config.DocumentName = "ao13back";
@@ -25,7 +24,7 @@ namespace ao13back.Src
             Console.WriteLine("CorsOrigins: " + Configuration["ClientOptions:CorsOrigins"]);
             Console.WriteLine("----------------------------------");
 
-            Random random = new();
+            builder.Services.AddSqlite<UserDb>("Data Source=" + Configuration["DBConnectionString__Path"]);
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy(
@@ -95,6 +94,7 @@ namespace ao13back.Src
             app.MapHub<SignalingHub>("/api/v1/hub");
 
             app.MapGet("/", () => "hello");
+            Random random = new();
 
             AuthService authService = new(app, random, Configuration);
             UserService userService = new(app);
