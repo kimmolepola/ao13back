@@ -22,3 +22,5 @@
 # Temporary files
 *.tmp
 *.temp
+
+DB.db
