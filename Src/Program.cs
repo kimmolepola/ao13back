@@ -20,6 +20,11 @@ namespace ao13back.Src
             });
             builder.Configuration.AddEnvironmentVariables(prefix: "ASPNETCORE_Ao13back__");
             ConfigurationManager Configuration = builder.Configuration;
+
+            Console.WriteLine("----------------------------------");
+            Console.WriteLine("CorsOrigins: " + Configuration["ClientOptions:CorsOrigins"]);
+            Console.WriteLine("----------------------------------");
+
             Random random = new();
             builder.Services.AddCors(options =>
             {
