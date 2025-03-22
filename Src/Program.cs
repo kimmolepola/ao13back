@@ -20,11 +20,16 @@ namespace ao13back.Src
             builder.Configuration.AddEnvironmentVariables(prefix: "ASPNETCORE_Ao13back__");
             ConfigurationManager Configuration = builder.Configuration;
 
+            string dbConnectionString = "Data Source=" + Configuration["DBConnectionString__Path"];
+
             Console.WriteLine("----------------------------------");
             Console.WriteLine("CorsOrigins: " + Configuration["ClientOptions:CorsOrigins"]);
+            Console.WriteLine("dbConnectionString: " + dbConnectionString);
             Console.WriteLine("----------------------------------");
 
-            builder.Services.AddSqlite<UserDb>("Data Source=" + Configuration["DBConnectionString__Path"]);
+
+
+            builder.Services.AddSqlite<UserDb>(dbConnectionString);
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy(
