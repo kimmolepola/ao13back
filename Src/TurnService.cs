@@ -17,7 +17,7 @@ class TurnService
                 return Results.InternalServerError();
             }
             long unixTimeStamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            string username = unixTimeStamp + userId;
+            string username = unixTimeStamp + ":" + userId;
             HMACSHA1 hmac = new(Encoding.UTF8.GetBytes(HmacSecret));
 
             byte[] dataBytes = UTF8Encoding.UTF8.GetBytes(username);
