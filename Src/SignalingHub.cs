@@ -45,9 +45,21 @@ public class SignalingHub : Hub
     public async Task Signaling(SignalingArgs args)
     {
         string id = Context.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
-        Console.WriteLine("Signaling: " + id + " -> " + args.RemoteId);
-        IHubCallerClients remoteCallerClients = UserInfo.GetConnectedUser(args.RemoteId);
-        object o = new { id, description = args.Description, candidate = args.Candidate };
+        Console.WriteLine("Signaling: " + id + " -> " + args.Id + " " + args.Type);
+        IHubCallerClients remoteCallerClients = UserInfo.GetConnectedUser(args.Id);
+        Console.WriteLine("remoteCallerClients 1: " + remoteCallerClients.Caller.GetHashCode());
+        // object o = new { id, description = args.Description, candidate = args.Candidate };
+        object o = new
+        {
+            // id,
+            // description = args.Description,
+            // candidate = args.Candidate,
+            id,
+            type = args.Type,
+            description = args.Description,
+            candidate = args.Candidate,
+            mid = args.Mid
+        };
         await remoteCallerClients.Caller.SendAsync("signaling", o);
     }
 

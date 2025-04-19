@@ -98,13 +98,15 @@ namespace ao13back.Src
             }
             app.MapHub<SignalingHub>("/api/v1/hub");
 
-            app.MapGet("/", () => "hello");
+
+            app.MapGet("/", () => "hello " + Configuration["ServerOptions:LoginPassword"]);
             Random random = new();
 
-            AuthService authService = new(app, random, Configuration);
-            UserService userService = new(app);
+            ServerAuthService serverAuthService = new(app, Configuration);
             TurnService turnService = new(app, Configuration);
             SignalingHub signalingHub = new();
+            AuthService authService = new(app, random, Configuration);
+            UserService userService = new(app);
             GameObjectService gameObjectService = new(app);
 
             app.Run();

@@ -7,7 +7,7 @@ class TurnService
 {
     public TurnService(WebApplication app, ConfigurationManager Configuration)
     {
-        app.MapPost("/api/v1/auth/getTurnCredentials", (UserDb db, HttpContext http) =>
+        app.MapPost("/api/v1/auth/getTurnCredentials", (HttpContext http) =>
         {
             Console.WriteLine("getTurnCredentials");
             string? userId = http.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
@@ -23,14 +23,25 @@ class TurnService
 
             byte[] dataBytes = UTF8Encoding.UTF8.GetBytes(username);
             byte[] calcHash = hmac.ComputeHash(dataBytes);
-            string credential = Convert.ToBase64String(calcHash);
-            string urls = "turns:" + Configuration["TurnOptions:TurnUrl"];
 
+            // string credential = Convert.ToBase64String(calcHash);
+            // string urls = "turns:" + Configuration["TurnOptions:TurnUrl"];
+            // return Results.Ok(new
+            // {
+            //     username,
+            //     credential,
+            //     urls,
+            // });
+
+            string password = Convert.ToBase64String(calcHash);
+            string hostname = "" + Configuration["TurnOptions:TurnHostname"];
+            int port = int.Parse("" + Configuration["TurnOptions:TurnPort"]);
             return Results.Ok(new
             {
-                urls,
+                hostname,
+                port,
                 username,
-                credential
+                password,
             });
         }).RequireAuthorization();
 
