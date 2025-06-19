@@ -24,7 +24,8 @@ class ServerAuthService
 
            var claims = new List<Claim>()
            {
-                new Claim("name", "" + data.Id),
+                new ("name", "" + data.Id),
+                new ("isServer", "true"),
            };
 
            if (Configuration["JWTOptions:SigningKey"] == null)

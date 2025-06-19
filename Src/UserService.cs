@@ -8,6 +8,19 @@ class UserService
 {
     public UserService(WebApplication app)
     {
+        app.MapPost("/api/v1/user/savePlayerData", (PlayerState[] playerStates) =>
+        {
+            Console.WriteLine("savePlayerData " + playerStates.Length);
+            foreach (PlayerState playerState in playerStates)
+            {
+                Console.WriteLine("savePlayerData " + playerState.ClientId + " " + playerState.Score);
+            }
+            return Results.Ok(new
+            {
+                success = true
+            });
+        }).RequireAuthorization();
+
         app.MapGet("/api/v1/user/checkOkToStart", (HttpContext http) =>
         {
             string? userId = http.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();

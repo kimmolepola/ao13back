@@ -4,8 +4,14 @@ class GameObjectService
 {
     public GameObjectService(WebApplication app)
     {
-        app.MapPost("/api/v1/gameObject/saveGameState", () =>
+        app.MapPost("/api/v1/gameObject/saveGameState", (PlayerState[] playerStates) =>
         {
+            Console.WriteLine("saveGameState " + playerStates.Length);
+            foreach (PlayerState playerState in playerStates)
+            {
+                Console.WriteLine("saveGameState " + playerState.ClientId + " " + playerState.Score);
+
+            }
             return Results.Ok(new
             {
                 success = true

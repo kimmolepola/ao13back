@@ -1,5 +1,6 @@
 namespace ao13back.Src;
 
+public record PlayerState(string ClientId, int Score);
 // public record SignalingArgs(string RemoteId, object? Description, object? Candidate);
 public record SignalingArgs(string Id, string Type, string? Description, string? Candidate, string? Mid);
 // public record SignalingArgs(string RemoteId, object? Description, object? Candidate, string? Idx, string? Typex, string? Descriptionx, string? Candidatex, string? Midx);

@@ -7,11 +7,11 @@ class TurnService
 {
     public TurnService(WebApplication app, ConfigurationManager Configuration)
     {
-        app.MapPost("/api/v1/auth/getTurnCredentials", (HttpContext http) =>
+        app.MapGet("/api/v1/auth/getTurnCredentials", (HttpContext http) =>
         {
             Console.WriteLine("getTurnCredentials");
             string? userId = http.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
-            string HmacSecret = Configuration["TurnOptions:HmacSecret"];
+            string HmacSecret = Configuration["TurnOptions:HmacSecret"] ?? throw new InvalidOperationException("HmacSecret is not configured.");
             if (HmacSecret == null)
             {
                 return Results.InternalServerError();
@@ -21,17 +21,8 @@ class TurnService
             string username = unixTimeStamp + ":" + userId;
             HMACSHA1 hmac = new(Encoding.UTF8.GetBytes(HmacSecret));
 
-            byte[] dataBytes = UTF8Encoding.UTF8.GetBytes(username);
+            byte[] dataBytes = Encoding.UTF8.GetBytes(username);
             byte[] calcHash = hmac.ComputeHash(dataBytes);
-
-            // string credential = Convert.ToBase64String(calcHash);
-            // string urls = "turns:" + Configuration["TurnOptions:TurnUrl"];
-            // return Results.Ok(new
-            // {
-            //     username,
-            //     credential,
-            //     urls,
-            // });
 
             string password = Convert.ToBase64String(calcHash);
             string hostname = "" + Configuration["TurnOptions:TurnHostname"];

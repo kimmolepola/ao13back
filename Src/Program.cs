@@ -97,12 +97,14 @@ namespace ao13back.Src
                 });
             }
             app.MapHub<SignalingHub>("/api/v1/hub");
+            app.MapHub<ServerSignalingHub>("/api/v1/serverHub");
 
 
-            app.MapGet("/", () => "hello " + Configuration["ServerOptions:LoginPassword"]);
+            app.MapGet("/", () => "hello");
             Random random = new();
 
             ServerAuthService serverAuthService = new(app, Configuration);
+            ServerSignalingHub serverSignalingHub = new();
             TurnService turnService = new(app, Configuration);
             SignalingHub signalingHub = new();
             AuthService authService = new(app, random, Configuration);
