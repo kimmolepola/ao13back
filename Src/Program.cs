@@ -97,14 +97,18 @@ namespace ao13back.Src
                 });
             }
             app.MapHub<SignalingHub>("/api/v1/hub");
+            app.MapHub<ServerSignalingHub>("/api/v1/serverHub");
+
 
             app.MapGet("/", () => "hello");
             Random random = new();
 
-            AuthService authService = new(app, random, Configuration);
-            UserService userService = new(app);
+            ServerAuthService serverAuthService = new(app, Configuration);
+            ServerSignalingHub serverSignalingHub = new();
             TurnService turnService = new(app, Configuration);
             SignalingHub signalingHub = new();
+            AuthService authService = new(app, random, Configuration);
+            UserService userService = new(app);
             GameObjectService gameObjectService = new(app);
 
             app.Run();
