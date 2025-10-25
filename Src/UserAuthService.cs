@@ -137,7 +137,7 @@ class AuthService
                 var salt = BCrypt.Net.BCrypt.GenerateSalt(int.Parse(Configuration["AuthOptions:BcryptSalt"]));
                 var hash = BCrypt.Net.BCrypt.HashPassword(data.Password, salt);
                 Guid idGuid = Guid.NewGuid();
-                string id = idGuid.ToString();
+                string id = idGuid.ToString("N");
                 int userNameInt = random.Next(100000000, 1999999999);
                 string userName = userNameInt.ToString();
                 User user = new()
