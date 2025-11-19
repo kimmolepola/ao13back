@@ -24,7 +24,7 @@ class UserService
         app.MapGet("/api/v1/user/checkOkToStart", (HttpContext http) =>
         {
             string? userId = http.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
-            IHubCallerClients? connectedUser = UserInfo.GetConnectedUser(userId);
+            ISingleClientProxy? connectedUser = UserInfo.GetConnectedUser(userId);
 
             if (connectedUser == null)
             {

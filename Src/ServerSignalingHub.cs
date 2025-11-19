@@ -26,16 +26,22 @@ public class ServerSignalingHub : Hub
     {
         string id = Context.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
         Console.WriteLine("Signaling: " + id + " -> " + args.Id + " " + args.Type);
-        IHubCallerClients remoteCallerClients = UserInfo.GetConnectedUser(args.Id);
-        Console.WriteLine("remoteCallerClients 1: " + remoteCallerClients.Caller.GetHashCode());
-        object o = new
+        ISingleClientProxy? connectedUser = UserInfo.GetConnectedUser(args.Id);
+        if (connectedUser is not null)
         {
-            id,
-            type = args.Type,
-            description = args.Description,
-            candidate = args.Candidate,
-            mid = args.Mid
-        };
-        await remoteCallerClients.Caller.SendAsync("signaling", o);
+            object o = new
+            {
+                id,
+                type = args.Type,
+                description = args.Description,
+                candidate = args.Candidate,
+                mid = args.Mid
+            };
+            await connectedUser.SendAsync("signaling", o);
+        }
+        else
+        {
+            Console.WriteLine("Signaling failure, connectedUser not found with id " + args.Id);
+        }
     }
 }

@@ -23,7 +23,7 @@ public class SignalingHub : Hub
         }
         else
         {
-            bool ok = UserInfo.AddConnectedUserUnique(id, Clients);
+            bool ok = UserInfo.AddConnectedUserUnique(id, Clients.Caller);
 
             if (!ok)
             {
@@ -42,16 +42,23 @@ public class SignalingHub : Hub
     {
         string id = Context.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
         Console.WriteLine("Signaling: " + id + " -> " + args.Id + " " + args.Type);
-        IHubCallerClients ServerClients = ServerInfo.ConnectedServer;
-        object o = new
+        IHubCallerClients? ServerClients = ServerInfo.ConnectedServer;
+        if (ServerClients is not null)
         {
-            id,
-            type = args.Type,
-            description = args.Description,
-            candidate = args.Candidate,
-            mid = args.Mid
-        };
-        await ServerClients.Caller.SendAsync("signaling", o);
+            object o = new
+            {
+                id,
+                type = args.Type,
+                description = args.Description,
+                candidate = args.Candidate,
+                mid = args.Mid
+            };
+            await ServerClients.Caller.SendAsync("signaling", o);
+        }
+        else
+        {
+            Console.WriteLine("Signaling failure, ServerClients is null");
+        }
     }
 
     public static async void Disconnect(string? id)
@@ -63,34 +70,4 @@ public class SignalingHub : Hub
         await ServerClients.All.SendAsync("peerDisconnected", id);
         UserInfo.RemoveConnectedUser(id);
     }
-
-    // public static async void Disconnect(string? id)
-    // {
-    //     Console.WriteLine("Disconnect: " + id);
-    //     if (id == null) { return; }
-    //     IHubCallerClients? Clients = UserInfo.GetConnectedUser(id);
-    //     if (Clients == null) { return; }
-    //     await Clients.All.SendAsync("peerDisconnected", id);
-    //     UserInfo.RemoveConnectedUser(id);
-    //     if (UserInfo.IsMain(id))
-    //     {
-    //         UserInfo.Main = null;
-    //         await Clients.All.SendAsync("mainDisconnected", id);
-    //         foreach ((string key, IHubCallerClients value) in UserInfo.GetConnectedUsers())
-    //         {
-    //             if (UserInfo.Main == null)
-    //             {
-    //                 UserInfo.Main = key;
-    //                 Console.WriteLine("main: " + key);
-    //                 await value.Caller.SendAsync("main", key);
-    //             }
-    //             else
-    //             {
-    //                 Console.WriteLine("connect to main: " + UserInfo.Main);
-    //                 await value.Caller.SendAsync("connectToMain", UserInfo.Main);
-    //             }
-    //         }
-    //     }
-    //     await Clients.Caller.SendAsync("disconnect");
-    // }
 }
