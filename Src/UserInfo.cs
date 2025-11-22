@@ -1,19 +1,20 @@
 using Microsoft.AspNetCore.SignalR;
 
 namespace ao13back.Src;
+
 public static class UserInfo
 {
     public static string? Main { get; set; }
-    private static readonly Dictionary<string, IHubCallerClients> ConnectedUsers = [];
+    private static readonly Dictionary<string, ISingleClientProxy> ConnectedUsers = [];
 
-    public static bool AddConnectedUserUnique(string id, IHubCallerClients Clients)
+    public static bool AddConnectedUserUnique(string id, ISingleClientProxy Client)
     {
         Console.WriteLine("AddConnectedUserUnique: " + id);
         if (ConnectedUsers.ContainsKey(id))
         {
             return false;
         }
-        ConnectedUsers[id] = Clients;
+        ConnectedUsers[id] = Client;
         return true;
     }
 
@@ -22,16 +23,16 @@ public static class UserInfo
         ConnectedUsers.Remove(id);
     }
 
-    public static Dictionary<string, IHubCallerClients> GetConnectedUsers()
+    public static Dictionary<string, ISingleClientProxy> GetConnectedUsers()
     {
         return ConnectedUsers;
     }
 
-    public static IHubCallerClients? GetConnectedUser(string id)
+    public static ISingleClientProxy? GetConnectedUser(string id)
     {
-        if (ConnectedUsers.TryGetValue(id, out IHubCallerClients? value))
+        if (ConnectedUsers.TryGetValue(id, out ISingleClientProxy? Client))
         {
-            return value;
+            return Client;
         }
         Console.WriteLine("ConnectedUsers, not present: " + id);
         return null;
