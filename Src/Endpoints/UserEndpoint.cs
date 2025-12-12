@@ -1,12 +1,13 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 
 
 namespace ao13back.Src;
 
-class UserService
+class UserEndpoint
 {
-    public UserService(WebApplication app)
+    public UserEndpoint(WebApplication app)
     {
         app.MapPost("/api/v1/user/savePlayerData", (PlayerState[] playerStates) =>
         {
@@ -23,7 +24,7 @@ class UserService
 
         app.MapGet("/api/v1/user/checkOkToStart", (HttpContext http) =>
         {
-            string? userId = http.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
+            string? userId = http.User.FindFirstValue(ClaimTypes.NameIdentifier);
             ISingleClientProxy? connectedUser = UserInfo.GetConnectedUser(userId);
 
             if (connectedUser == null)
@@ -41,10 +42,10 @@ class UserService
 
         }).RequireAuthorization();
 
-        app.MapGet("/api/v1/user", (UserDb db, HttpContext http) =>
+        app.MapGet("/api/v1/user", (AppDbContext db, HttpContext http) =>
         {
             Console.WriteLine("user");
-            string? userId = http.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
+            string? userId = http.User.FindFirstValue(ClaimTypes.NameIdentifier);
             User? user = db.Users.SingleOrDefault(u => u.Id == userId);
             string token = http.Request.Headers.Authorization.ToString().Replace("Bearer ", "");
 
@@ -57,10 +58,10 @@ class UserService
             });
         }).RequireAuthorization();
 
-        app.MapPost("/api/v1/user/updateUsername", async (UserDb db, HttpContext http, UpdateUsername data) =>
+        app.MapPost("/api/v1/user/updateUsername", async (AppDbContext db, HttpContext http, UpdateUsername data) =>
         {
             Console.WriteLine("updateUsername " + data.Username);
-            string? userId = http.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
+            string? userId = http.User.FindFirstValue(ClaimTypes.NameIdentifier);
             User? user = db.Users.SingleOrDefault(u => u.Id == userId);
             if (user is null) return Results.NotFound();
             user.UserName = data.Username;

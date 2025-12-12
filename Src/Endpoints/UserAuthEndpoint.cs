@@ -9,9 +9,9 @@ using System.Net;
 
 namespace ao13back.Src;
 
-class AuthService
+class UserAuthEndpoint
 {
-    public AuthService(
+    public UserAuthEndpoint(
         WebApplication app,
         Random random,
         ConfigurationManager Configuration)
@@ -22,7 +22,8 @@ class AuthService
             Credentials = new NetworkCredential(Configuration["EmailOptions:EmailUserName"], Configuration["EmailOptions:AppPassword"]),
             EnableSsl = true,
         };
-        app.MapPost("/api/v1/auth/login", (UserDb db, Login data) =>
+
+        app.MapPost("/api/v1/auth/login", async (AppDbContext db, Login data) =>
         {
             Console.WriteLine("Login: " + data);
             User? user;
@@ -46,47 +47,37 @@ class AuthService
                 return Results.Unauthorized();
             }
 
-            var claims = new List<Claim>()
+            try
             {
-                new Claim("name", "" + user.Id),
-            };
-
-            if (Configuration["JWTOptions:SigningKey"] == null)
+                var newRefreshToken = TokenHelpers.CreateRefreshToken(user.Id, "client");
+                db.RefreshTokens.Add(newRefreshToken);
+                await db.SaveChangesAsync();
+                string accessToken = TokenHelpers.CreateAccessToken(user.Id, "client", Configuration);
+                return Results.Ok(new
+                {
+                    score = user.Score,
+                    userId = user.Id,
+                    username = user.UserName,
+                    token = accessToken,
+                    refreshToken = newRefreshToken,
+                });
+            }
+            catch (Exception)
             {
                 return Results.InternalServerError();
             }
-            var keyBytes = Encoding.UTF8.GetBytes(Configuration["JWTOptions:SigningKey"]);
-            var symmetricKey = new SymmetricSecurityKey(keyBytes);
-            var signingCredentials = new SigningCredentials(symmetricKey, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: Configuration["JWTOptions:Issuer"],
-                audience: Configuration["JWTOptions:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddSeconds(int.Parse(Configuration["JWTOptions:ExpirationSeconds"])),
-                signingCredentials: signingCredentials);
-
-            var rawToken = new JwtSecurityTokenHandler().WriteToken(token);
-
-            return Results.Ok(new
-            {
-                score = user.Score,
-                userId = user.Id,
-                username = user.UserName,
-                token = rawToken,
-            });
         });
 
 
-        app.MapPost("/api/v1/auth/logout", (UserDb db, HttpContext http, [FromHeader(Name = "Authorization")] string authorization) =>
+        app.MapPost("/api/v1/auth/logout", (AppDbContext db, HttpContext http, [FromHeader(Name = "Authorization")] string authorization) =>
         {
             Console.WriteLine("Logout: " + authorization);
-            string? id = http.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
+            string? id = http.User.FindFirstValue(ClaimTypes.NameIdentifier);
             SignalingHub.Disconnect(id);
             return Results.Ok();
         }).RequireAuthorization();
 
-        app.MapPost("/api/v1/auth/signup", (UserDb db, Signup data) =>
+        app.MapPost("/api/v1/auth/signup", (AppDbContext db, Signup data) =>
         {
             Console.WriteLine("Signup" + data);
             User? user = db.Users.Where(u => u.Email == data.Email).FirstOrDefault();
@@ -100,7 +91,7 @@ class AuthService
             }
 
             var token = RandomNumberGenerator.GetString("abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMOPQRSTUVXYZ1234567890", 32);
-            long milliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            long milliseconds = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
             SignupRequests.signupRequests[data.Email] = new SignupRequest(milliseconds, token);
 
@@ -123,9 +114,9 @@ class AuthService
 
         });
 
-        app.MapPost("/api/v1/auth/confirmSignup", async (UserDb db, ConfirmSignup data) =>
+        app.MapPost("/api/v1/auth/confirmSignup", async (AppDbContext db, ConfirmSignup data) =>
         {
-            Console.WriteLine("Confirm sighup: " + data);
+            Console.WriteLine("Confirm signup: " + data);
             if (SignupRequests.signupRequests.TryGetValue(data.Email, out SignupRequest? signupRequest))
             {
                 bool isValid = signupRequest != null && signupRequest.Token == data.Token;
@@ -148,9 +139,11 @@ class AuthService
                     Password = hash,
                     Score = 0,
                 };
+                var newRefreshToken = TokenHelpers.CreateRefreshToken(id, "client");
 
                 try
                 {
+                    db.RefreshTokens.Add(newRefreshToken);
                     db.Users.Add(user);
                     await db.SaveChangesAsync();
                     SignupRequests.signupRequests.Remove(data.Email);
@@ -169,35 +162,22 @@ class AuthService
                 MailMessage mail = new(Configuration["EmailOptions:FromEmail"], data.Email, subject, message) { IsBodyHtml = true };
                 smtpClient.Send(mail);
 
-                var claims = new List<Claim>()
+                try
                 {
-                        new("name", "" + user.Id),
-                };
-
-                if (Configuration["JWTOptions:SigningKey"] == null)
+                    string accessToken = TokenHelpers.CreateAccessToken(user.Id, "client", Configuration);
+                    return Results.Ok(new
+                    {
+                        score = user.Score,
+                        userId = user.Id,
+                        username = user.UserName,
+                        token = accessToken,
+                        refreshToken = newRefreshToken,
+                    });
+                }
+                catch (Exception)
                 {
                     return Results.InternalServerError();
                 }
-                var keyBytes = Encoding.UTF8.GetBytes(Configuration["JWTOptions:SigningKey"]);
-                var symmetricKey = new SymmetricSecurityKey(keyBytes);
-                var signingCredentials = new SigningCredentials(symmetricKey, SecurityAlgorithms.HmacSha256);
-
-                var token = new JwtSecurityToken(
-                    issuer: Configuration["JWTOptions:Issuer"],
-                    audience: Configuration["JWTOptions:Audience"],
-                    claims: claims,
-                    expires: DateTime.Now.AddSeconds(int.Parse(Configuration["JWTOptions:ExpirationSeconds"])),
-                    signingCredentials: signingCredentials);
-
-                var rawToken = new JwtSecurityTokenHandler().WriteToken(token);
-
-                return Results.Ok(new
-                {
-                    score = user.Score,
-                    userId = user.Id,
-                    username = user.UserName,
-                    token = rawToken,
-                });
             }
             else
             {
@@ -205,7 +185,7 @@ class AuthService
             }
         });
 
-        app.MapPost("/api/v1/auth/requestResetPassword", (UserDb db, RequestResetPassword data) =>
+        app.MapPost("/api/v1/auth/requestResetPassword", (AppDbContext db, RequestResetPassword data) =>
         {
             Console.WriteLine("RequestResetPassword " + data);
             User? user;
@@ -226,7 +206,7 @@ class AuthService
                 return Results.Conflict(new { error = "Password reset email already sent. Check your inbox or try again later." });
             }
             var token = RandomNumberGenerator.GetString("abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMOPQRSTUVXYZ1234567890", 32);
-            long milliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            long milliseconds = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
             PasswordResetRequests.passwordResetRequests[user.Email] = new PasswordResetRequest(milliseconds, token);
 
@@ -248,7 +228,7 @@ class AuthService
             return Results.Ok();
         });
 
-        app.MapPost("/api/v1/auth/resetPassword", async (UserDb db, ResetPassword data) =>
+        app.MapPost("/api/v1/auth/resetPassword", async (AppDbContext db, ResetPassword data) =>
         {
             Console.WriteLine("Reset password: " + data);
             if (PasswordResetRequests.passwordResetRequests.TryGetValue(data.Email, out PasswordResetRequest? passwordResetRequest))
@@ -309,7 +289,7 @@ class AuthService
 
             while (await timer.WaitForNextTickAsync())
             {
-                long milliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                long milliseconds = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 foreach (string key in passwordResetRequests.Keys)
                 {
                     Console.WriteLine(key);
@@ -337,7 +317,7 @@ class AuthService
 
             while (await timer.WaitForNextTickAsync())
             {
-                long milliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                long milliseconds = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 foreach (string key in signupRequests.Keys)
                 {
                     Console.WriteLine(key);

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.SignalR;
 
 namespace ao13back.Src;
@@ -7,10 +8,11 @@ public class ServerSignalingHub : Hub
     public override async Task OnConnectedAsync()
     {
         await base.OnConnectedAsync();
-        string id = Context.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
-        string isServer = Context.User.Claims.Where(c => c.Type == "isServer").Select(c => c.Value).SingleOrDefault();
-        Console.WriteLine("Server OnConnected " + id + " " + isServer);
-        if (isServer == "true")
+        string? id = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        bool? isServer = Context.User?.IsInRole("server");
+
+        Console.WriteLine("Server OnConnected, id: " + id + " isServer: " + isServer);
+        if (isServer == true)
         {
             ServerInfo.ConnectedServer = Clients;
             await Clients.Caller.SendAsync("connected");
@@ -18,13 +20,13 @@ public class ServerSignalingHub : Hub
         else
         {
             Context.Abort();
-            Console.WriteLine("Server OnConnected, not a server " + id + " " + isServer);
+            Console.WriteLine("Server OnConnected, not a server, id: " + id + " isServer: " + isServer);
         }
     }
 
     public async Task Signaling(SignalingArgs args)
     {
-        string id = Context.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
+        string? id = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
         Console.WriteLine("Signaling: " + id + " -> " + args.Id + " " + args.Type);
         ISingleClientProxy? connectedUser = UserInfo.GetConnectedUser(args.Id);
         if (connectedUser is not null)

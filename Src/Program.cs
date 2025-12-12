@@ -28,8 +28,8 @@ namespace ao13back.Src
             Console.WriteLine("----------------------------------");
 
 
-
-            builder.Services.AddSqlite<UserDb>(dbConnectionString);
+            builder.Services.AddDbContext<AppDbContext>();
+            builder.Services.AddSqlite<AppDbContext>(dbConnectionString);
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy(
@@ -81,6 +81,7 @@ namespace ao13back.Src
                 });
             builder.Services.AddAuthorization();
             builder.Services.AddSignalR();
+            builder.Services.AddHostedService<RefreshTokenCleanupService>();
             WebApplication app = builder.Build();
             app.UseCors("WithOrigins");
             app.UseAuthentication();
@@ -103,13 +104,13 @@ namespace ao13back.Src
             app.MapGet("/", () => "hello");
             Random random = new();
 
-            ServerAuthService serverAuthService = new(app, Configuration);
+            ServerAuthEndpoint serverAuthService = new(app, Configuration);
             ServerSignalingHub serverSignalingHub = new();
-            TurnService turnService = new(app, Configuration);
+            TurnEndpoint turnService = new(app, Configuration);
             SignalingHub signalingHub = new();
-            AuthService authService = new(app, random, Configuration);
-            UserService userService = new(app);
-            GameObjectService gameObjectService = new(app);
+            UserAuthEndpoint authService = new(app, random, Configuration);
+            UserEndpoint userService = new(app);
+            GameObjectEndpoint gameObjectService = new(app);
 
             app.Run();
         }
