@@ -1,8 +1,8 @@
 namespace ao13back.Src;
 
-class GameObjectService
+class GameObjectEndpoint
 {
-    public GameObjectService(WebApplication app)
+    public GameObjectEndpoint(WebApplication app)
     {
         app.MapPost("/api/v1/gameObject/saveGameState", (PlayerState[] playerStates) =>
         {
@@ -18,7 +18,7 @@ class GameObjectService
             });
         }).RequireAuthorization();
 
-        app.MapGet("/api/v1/gameObject/{id}", (string id, UserDb db) =>
+        app.MapGet("/api/v1/gameObject/{id}", (string id, AppDbContext db) =>
         {
             Console.WriteLine("gameObject/{id} " + id);
             User? user = db.Users.SingleOrDefault(u => u.Id == id);

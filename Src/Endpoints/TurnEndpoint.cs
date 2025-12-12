@@ -1,16 +1,17 @@
+using System.Security.Claims;
 using System.Text;
 using System.Security.Cryptography;
 
 namespace ao13back.Src;
 
-class TurnService
+class TurnEndpoint
 {
-    public TurnService(WebApplication app, ConfigurationManager Configuration)
+    public TurnEndpoint(WebApplication app, ConfigurationManager Configuration)
     {
         app.MapGet("/api/v1/auth/getTurnCredentials", (HttpContext http) =>
         {
             Console.WriteLine("getTurnCredentials");
-            string? userId = http.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
+            string? userId = http.User.FindFirstValue(ClaimTypes.NameIdentifier);
             string HmacSecret = Configuration["TurnOptions:HmacSecret"] ?? throw new InvalidOperationException("HmacSecret is not configured.");
             if (HmacSecret == null)
             {

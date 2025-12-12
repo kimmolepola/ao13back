@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.SignalR;
 
 namespace ao13back.Src;
@@ -7,14 +8,14 @@ public class SignalingHub : Hub
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         await base.OnDisconnectedAsync(exception);
-        string id = Context.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
+        string? id = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
         Disconnect(id);
     }
 
     public override async Task OnConnectedAsync()
     {
         await base.OnConnectedAsync();
-        string id = Context.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
+        string? id = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
         Console.WriteLine("OnConnected " + id);
         if (ServerInfo.ConnectedServer is null)
         {
@@ -40,7 +41,7 @@ public class SignalingHub : Hub
 
     public async Task Signaling(SignalingArgs args)
     {
-        string id = Context.User.Claims.Where(c => c.Type == "name").Select(c => c.Value).SingleOrDefault();
+        string? id = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
         Console.WriteLine("Signaling: " + id + " -> " + args.Id + " " + args.Type);
         IHubCallerClients? ServerClients = ServerInfo.ConnectedServer;
         if (ServerClients is not null)
