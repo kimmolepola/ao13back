@@ -25,12 +25,13 @@ class ServerAuthEndpoint
             try
             {
                 var newRefreshToken = TokenHelpers.CreateRefreshToken(data.Id, "server");
-                db.RefreshTokens.Add(newRefreshToken);
+                db.RefreshTokens.Add(newRefreshToken.Entity);
                 await db.SaveChangesAsync();
                 string accessToken = TokenHelpers.CreateAccessToken(data.Id.ToString(), "server", Configuration);
                 return Results.Ok(new
                 {
-                    token = accessToken,
+                    accessToken = accessToken,
+                    refreshToken = newRefreshToken.plainToken
                 });
             }
             catch (Exception)

@@ -104,13 +104,14 @@ namespace ao13back.Src
             app.MapGet("/", () => "hello");
             Random random = new();
 
-            ServerAuthEndpoint serverAuthService = new(app, Configuration);
+            ServerAuthEndpoint serverAuthEndpoint = new(app, Configuration);
             ServerSignalingHub serverSignalingHub = new();
-            TurnEndpoint turnService = new(app, Configuration);
+            TurnEndpoint turnEndpoint = new(app, Configuration);
             SignalingHub signalingHub = new();
-            UserAuthEndpoint authService = new(app, random, Configuration);
-            UserEndpoint userService = new(app);
-            GameObjectEndpoint gameObjectService = new(app);
+            UserAuthEndpoint authEndpoint = new(app, random, Configuration);
+            UserEndpoint userEndpoint = new(app);
+            GameObjectEndpoint gameObjectEndpoint = new(app);
+            RefreshTokenEndpoint refreshTokenEndpoint = new(app, Configuration);
 
             app.Run();
         }

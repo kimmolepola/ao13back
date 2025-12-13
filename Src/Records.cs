@@ -37,3 +37,4 @@ public record TurnOptions(
     string TurnUrl
 );
 
+public record TokenRefreshRequest(string RefreshToken);

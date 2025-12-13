@@ -50,7 +50,7 @@ class UserAuthEndpoint
             try
             {
                 var newRefreshToken = TokenHelpers.CreateRefreshToken(user.Id, "client");
-                db.RefreshTokens.Add(newRefreshToken);
+                db.RefreshTokens.Add(newRefreshToken.Entity);
                 await db.SaveChangesAsync();
                 string accessToken = TokenHelpers.CreateAccessToken(user.Id, "client", Configuration);
                 return Results.Ok(new
@@ -58,8 +58,8 @@ class UserAuthEndpoint
                     score = user.Score,
                     userId = user.Id,
                     username = user.UserName,
-                    token = accessToken,
-                    refreshToken = newRefreshToken,
+                    accessToken = accessToken,
+                    refreshToken = newRefreshToken.plainToken,
                 });
             }
             catch (Exception)
@@ -143,7 +143,7 @@ class UserAuthEndpoint
 
                 try
                 {
-                    db.RefreshTokens.Add(newRefreshToken);
+                    db.RefreshTokens.Add(newRefreshToken.Entity);
                     db.Users.Add(user);
                     await db.SaveChangesAsync();
                     SignupRequests.signupRequests.Remove(data.Email);
@@ -170,8 +170,8 @@ class UserAuthEndpoint
                         score = user.Score,
                         userId = user.Id,
                         username = user.UserName,
-                        token = accessToken,
-                        refreshToken = newRefreshToken,
+                        accessToken = accessToken,
+                        refreshToken = newRefreshToken.plainToken,
                     });
                 }
                 catch (Exception)

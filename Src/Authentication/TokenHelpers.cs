@@ -44,7 +44,7 @@ static class TokenHelpers
         return rawToken;
     }
 
-    public static RefreshToken CreateRefreshToken(string userId, string role)
+    public static (string plainToken, RefreshToken Entity) CreateRefreshToken(string userId, string role)
     {
         var randomBytes = RandomNumberGenerator.GetBytes(64);
         var base64String = Convert.ToBase64String(randomBytes);
@@ -57,7 +57,8 @@ static class TokenHelpers
             Revoked = false,
             Role = role,
         };
-        return newEntity;
+        return (base64String, newEntity);
+        ;
     }
 
     public static string HashToken(string token)
